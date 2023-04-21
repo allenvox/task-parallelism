@@ -12,35 +12,42 @@ void swap(int* a, int* b)
 	*b = t;
 }
 
-void partition(int *v, int i, int j, int low, int high)
+void partition(int *v, int low, int high, int *left, int *right)
 {
-    i = low;
-    j = high;
-    int pivot = v[(low + high) / 2];
-    do {
+    int i = low;
+    int j = high;
+    int pivot = v[(i + j) / 2];
+
+    while (i <= j) {
         while (v[i] < pivot) i++;
         while (v[j] > pivot) j--;
+
         if (i <= j) {
             swap(&v[i], &v[j]);
-            (i)++;
-            (j)--;
+            i++;
+            j--;
         }
-    } while (i <= j);
+    }
+
+    *left = i;
+    *right = j;
 }
 
 void quicksort_tasks(int *v, int low, int high)
 {
-    int i, j;
-    partition(v, i, j, low, high);
-    if (high - low < threshold || (j - low < threshold || high - i < threshold)) {
-        if (low < j)
-            quicksort_tasks(v, low, j);
-        if (i < high)
-            quicksort_tasks(v, i, high);
+    int left = 0;
+    int right = 0;
+    partition(v, low, high, &left, &right);
+
+    if (high - low < threshold || right - low < threshold || high - left < threshold) {
+        if (low < right)
+            quicksort_tasks(v, low, right);
+        if (left < high)
+            quicksort_tasks(v, left, high);
     } else {
         #pragma omp task
-        { quicksort_tasks(v, low, j); }
-        quicksort_tasks(v, i, high);
+        { quicksort_tasks(v, low, right); }
+        quicksort_tasks(v, left, high);
     }
 }
 
@@ -58,7 +65,7 @@ int main(int argc, char **argv)
        array[i] = rand() % size + 1;
        //printf("%d ", array[i]);
     }
-    
+
     double t = omp_get_wtime();
     #pragma omp parallel
     {
