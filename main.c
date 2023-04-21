@@ -54,6 +54,8 @@ void quicksort_tasks(int *v, int low, int high)
 int main(int argc, char **argv)
 {
     int size = (argc > 1 && argv[1] != NULL) ? atoi(argv[1]) : 10;
+    int threads = (argc > 2 && argv[2] != NULL) ? atoi(argv[2]) : 4;
+    omp_set_num_threads(threads);
     int *array = malloc(size * sizeof(int));
 
     //printf("unsorted: ");
@@ -75,7 +77,7 @@ int main(int argc, char **argv)
        //printf("%d ", array[i]);
     }
 
-    printf("# qsort (size = %d)\n", size);
+    printf("# qsort (size = %d, threads = %d)\n", size, threads);
 	printf("# Elapsed time (sec): %.5f\n", t);
     return 0;
 }
