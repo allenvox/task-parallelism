@@ -3,7 +3,7 @@
 #include <string.h>
 #include "omp.h"
 
-#define threshold 1000
+#define THRESHOLD 1000
 
 void swap(int* a, int* b)
 {
@@ -22,8 +22,8 @@ void partition(int *v, int i, int j, int low, int high)
         while (v[j] > pivot) j--;
         if (i <= j) {
             swap(&v[i], &v[j]);
-            (i)++;
-            (j)--;
+            i++;
+            j--;
         }
     } while (i <= j);
 }
@@ -32,7 +32,7 @@ void quicksort_tasks(int *v, int low, int high)
 {
     int i, j;
     partition(v, i, j, low, high);
-    if (high - low < threshold || (j - low < threshold || high - i < threshold)) {
+    if (high - low < THRESHOLD || (j - low < THRESHOLD || high - i < THRESHOLD)) {
         if (low < j)
             quicksort_tasks(v, low, j);
         if (i < high)
@@ -46,12 +46,8 @@ void quicksort_tasks(int *v, int low, int high)
 
 int main(int argc, char **argv)
 {
-    if ((argc != 2) || atoi(argv[1]) == 0) {
-        printf("Usage: ./main <positive_array_size>\n");
-        return 0;
-    }
-    int size = atoi(argv[1]);
-    int *array = malloc(sizeof(int) * size);
+    int size = (argc > 1 && argv[1] != NULL) ? atoi(argv[1]) : 10;
+    int *array = malloc(size * sizeof(int));
 
     //printf("unsorted: ");
     for (int i = 0; i < size; i++) {
@@ -62,7 +58,7 @@ int main(int argc, char **argv)
     double t = omp_get_wtime();
     #pragma omp parallel
     {
-        #pragma omp single
+        #pragma omp single nowait
         quicksort_tasks(array, 0, size - 1);
     }
     t = omp_get_wtime() - t;
