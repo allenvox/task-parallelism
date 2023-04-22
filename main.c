@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,8 +15,8 @@ void swap(int* a, int* b)
 
 void partition(int *v, int low, int high, int *left, int *right)
 {
-    int i = low;
-    int j = high;
+    uint32_t i = low;
+    uint32_t j = high;
     int pivot = v[(i + j) / 2];
 
     while (i <= j) {
@@ -35,8 +36,8 @@ void partition(int *v, int low, int high, int *left, int *right)
 
 void quicksort_tasks(int *v, int low, int high)
 {
-    int left = 0;
-    int right = 0;
+    uint32_t left = 0;
+    uint32_t right = 0;
     partition(v, low, high, &left, &right);
 
     if (high - low < threshold || right - low < threshold || high - left < threshold) {
@@ -67,7 +68,7 @@ int main(int argc, char **argv)
     double t = omp_get_wtime();
     #pragma omp parallel
     {
-        #pragma omp single nowait
+        #pragma omp single
         quicksort_tasks(array, 0, size - 1);
     }
     t = omp_get_wtime() - t;
