@@ -13,7 +13,7 @@ void swap(int* a, int* b)
 	*b = t;
 }
 
-void partition(int *v, int low, int high, int *left, int *right)
+void partition(int *v, uint32_t low, uint32_t high, uint32_t *left, uint32_t *right)
 {
     uint32_t i = low;
     uint32_t j = high;
@@ -34,7 +34,7 @@ void partition(int *v, int low, int high, int *left, int *right)
     *right = j;
 }
 
-void quicksort_tasks(int *v, int low, int high)
+void quicksort_tasks(int *v, uint32_t low, uint32_t high)
 {
     uint32_t left = 0;
     uint32_t right = 0;
@@ -52,12 +52,23 @@ void quicksort_tasks(int *v, int low, int high)
     }
 }
 
+void quicksort_serial(int *v, uint32_t low, uint32_t high)
+{
+    uint32_t left = 0;
+    uint32_t right = 0;
+    partition(v, low, high, &left, &right);
+
+    if (low < right) { quicksort_serial(v, low, right); }
+    if (left < high) { quicksort_serial(v, left, high); }
+}
+
 int main(int argc, char **argv)
 {
     int size = (argc > 1 && argv[1] != NULL) ? atoi(argv[1]) : 10;
     int threads = (argc > 2 && argv[2] != NULL) ? atoi(argv[2]) : 4;
     omp_set_num_threads(threads);
     int *array = malloc(size * sizeof(int));
+    double t;
 
     //printf("unsorted: ");
     for (int i = 0; i < size; i++) {
@@ -65,13 +76,20 @@ int main(int argc, char **argv)
        //printf("%d ", array[i]);
     }
 
-    double t = omp_get_wtime();
-    #pragma omp parallel
+    if (threads == 1)
     {
-        #pragma omp single
-        quicksort_tasks(array, 0, size - 1);
+        t = omp_get_wtime();
+        quicksort_serial(array, 0, size - 1);
+        t = omp_get_wtime() - t;
+    } else {
+        t = omp_get_wtime();
+        #pragma omp parallel
+        {
+            #pragma omp single
+            quicksort_tasks(array, 0, size - 1);
+        }
+        t = omp_get_wtime() - t;
     }
-    t = omp_get_wtime() - t;
 
     //printf("sorted: ");
     for (int i = 0; i < size; i++) {
